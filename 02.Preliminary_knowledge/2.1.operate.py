@@ -26,3 +26,27 @@ torch.randn(3, 4)
 x = torch.tensor([1.0, 2, 4, 8])
 y = torch.tensor([2, 2, 2, 2])
 x + y, x - y, x * y, x / y, x ** y  # **运算符是求幂运算
+
+# e 的x幂次方
+torch.exp(x)
+
+
+# 张量连结（concatenate
+X = torch.arange(12, dtype=torch.float32).reshape((3,4))
+Y = torch.tensor([[2.0, 1, 4, 3], [1, 2, 3, 4], [4, 3, 2, 1]])
+torch.cat((X, Y), dim=0), torch.cat((X, Y), dim=1)
+
+# 逻辑判断，shape 一致的一一对应元素换成True 或False
+X == Y
+
+# 求和
+X.sum()
+
+# 广播机制： 就是对应位置，元素与元素进行计算操作
+a = torch.arange(3).reshape((3, 1))
+b = torch.arange(2).reshape((1, 2))
+a, b
+a + b
+
+# 同正常切片操作
+X[-1], X[1:3]
