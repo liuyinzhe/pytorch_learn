@@ -8,6 +8,11 @@ x = torch.ones((2, 2), requires_grad=True)
 # x.data 中存储张量
 # x.grad  储存 叶节点
 # x.grad_fn 
+'''
+data：存储了Tensor，是本体的数据
+grad：保存了data的梯度，本身是个Variable而非Tensor，与data形状一致
+grad_fn：指向Function对象，用于反向传播的梯度计算之用
+'''
 # 便于 backward ,反向传播，去除对结果影响较小(权重)的计算，更加准确
 print(x)
 
