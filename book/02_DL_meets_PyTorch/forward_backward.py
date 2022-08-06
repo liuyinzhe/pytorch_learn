@@ -19,7 +19,7 @@ class Multiply(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_z):
         '''
-        grad_z = 损失函数L/z # 损失函数相对z 的梯度值
+        grad_z = 损失函数L/z # 损失函数相对z 的梯度值(导数)
         https://www.cnblogs.com/peixu/p/13209105.html
         在微积分里面，对多元函数的参数求∂偏导数，把求得的各个参数的偏导数以向量的形式写出来，就是梯度。 例如函数f(x,y), 分别对x，y求偏导数，求得的梯度向量就是(∂f/∂x, ∂f/∂y)T，简称grad f(x,y)或者▽f(x,y)。
         '''
