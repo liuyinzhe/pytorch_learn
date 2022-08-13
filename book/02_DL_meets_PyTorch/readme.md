@@ -32,5 +32,5 @@ t(x) =m(x+2)**2
     叶子节点： 自变量x，输入
 
 另外入门视频(主要理解过程作用，公式可以忽略)：
-    5分钟学深度学习
-    https://space.bilibili.com/168709400/channel/seriesdetail?sid=2430388
+    
+    [5分钟学深度学习](https://space.bilibili.com/168709400/channel/seriesdetail?sid=2430388)
