@@ -80,8 +80,8 @@ plt.figure(figsize=(10,7))
 # 将拟合直线的参数 a,b显示出来
 str1 = str(a.data.numpy()[0]) + 'x +' + str(b.data.numpy()[0])
 
-xplot = plt.plot(x_data,y_train.data.numpy(),label ='Data', marker='o')
-yplot = plt.plot(x_data,a.data.numpy()*x_data+b.data.numpy(),label =str1,marker='o') # 绘制拟合直线图
+xplot = plt.plot(x_data,y_train.data.numpy(),label ='Data', marker='o') # 实际y
+yplot = plt.plot(x_data,a.data.numpy()*x_data+b.data.numpy(),label =str1,marker='o') # 绘制拟合的y 直线图  y= a.data.numpy()*x_data+b.data.numpy()
 
 plt.xlabel('X')
 plt.ylabel('Y')
