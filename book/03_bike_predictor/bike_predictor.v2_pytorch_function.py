@@ -81,9 +81,9 @@ losses = []
 #b. 调用PyTorch现成的函数，构建序列化的神经网络
 # 定义神经网络架构，features.shape[1]个输入层单元，10个隐含层，1个输出层
 input_size = features.shape[1]
-hidden_size = 10
-output_size = 1
-batch_size = 128
+hidden_size = 10 # 隐藏层
+output_size = 1 # 输出层
+batch_size = 128  #应对大量数据，的多次迭代循环，一次读取太大数据量会比较慢，对数据进行批处理(batch processing)
 neu = torch.nn.Sequential( # 序列化构成功能，多层神经网络
     torch.nn.Linear(input_size, hidden_size), #输入-> 隐藏层 线性映射
     torch.nn.Sigmoid(),  # 隐含层 非线性sigmoid 激活函数 映射到 (0,1)的区间
