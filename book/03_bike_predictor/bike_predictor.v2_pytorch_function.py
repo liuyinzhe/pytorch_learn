@@ -83,7 +83,7 @@ losses = []
 input_size = features.shape[1]
 hidden_size = 10 # 隐藏层
 output_size = 1 # 输出层
-batch_size = 128  #应对大量数据，的多次迭代循环，一次读取太大数据量会比较慢，对数据进行批处理(batch processing)
+batch_size = 128  #应对大量数据，的多次迭代循环，一次读取太大数据量会比较慢，对数据进行批处理(batch processing); 这里只输入单个批次大小，后面需要手动拆分批次
 neu = torch.nn.Sequential( # 序列化构成功能，多层神经网络
     torch.nn.Linear(input_size, hidden_size), #输入-> 隐藏层 线性映射
     torch.nn.Sigmoid(),  # 隐含层 非线性sigmoid 激活函数 映射到 (0,1)的区间
@@ -102,7 +102,8 @@ for i in range(1000):
     # 每128个样本点被划分为一个撮，在循环的时候一批一批地读取
     batch_loss = []
     # start和end分别是提取一个batch数据的起始和终止下标
-    for start in range(0, len(X), batch_size):
+    for start in range(0, len(X), batch_size): # range(起始，终止,步长)
+        # 手动拆分批次,如果end(start + batch_size) 小于总长度len(X),没问题，如果大于则end坐标为len(x)
         end = start + batch_size if start + batch_size < len(X) else len(X)
         xx = torch.tensor(X[start:end], dtype = torch.float, requires_grad = True)
         yy = torch.tensor(Y[start:end], dtype = torch.float, requires_grad = True)
