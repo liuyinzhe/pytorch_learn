@@ -103,7 +103,7 @@ for i in range(1000):
     batch_loss = []
     # start和end分别是提取一个batch数据的起始和终止下标
     for start in range(0, len(X), batch_size): # range(起始，终止,步长)
-        # 手动拆分批次,如果end(start + batch_size) 小于总长度len(X),没问题，如果大于则end坐标为len(x)
+        # 手动拆分批次,如果end(start + batch_size) 小于总长度len(X),没问题，如果大于则end大小为len(x)
         end = start + batch_size if start + batch_size < len(X) else len(X)
         xx = torch.tensor(X[start:end], dtype = torch.float, requires_grad = True)
         yy = torch.tensor(Y[start:end], dtype = torch.float, requires_grad = True)
