@@ -45,7 +45,7 @@ data.head()
 quant_features = ['cnt', 'temp', 'hum', 'windspeed']
 #quant_features = ['temp', 'hum', 'windspeed']
 
-# 我们将每一个变量的均值和方差都存储到scaled_features变量中。
+# 我们将每一个变量的均值和方差都存储到scaled_features变量中。后面逆过程恢复真实数值
 scaled_features = {}
 for each in quant_features:
     mean, std = data[each].mean(), data[each].std()
@@ -151,7 +151,7 @@ print((predict * std + mean)[:10])
 # 横坐标轴是不同的日期，纵坐标轴是预测或者真实数据的值
 fig, ax = plt.subplots(figsize = (10, 7))
 
-mean, std = scaled_features['cnt']
+mean, std = scaled_features['cnt'] # 数值变量标准化过的数据恢复：(data[each] - mean)/std 逆过程，恢复数值
 ax.plot(predict * std + mean, label='Prediction', linestyle = '--')
 ax.plot(targets * std + mean, label='Data', linestyle = '-')
 ax.legend()
