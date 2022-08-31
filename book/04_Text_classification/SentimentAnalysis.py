@@ -1,9 +1,5 @@
 # 导入程序所需要的程序包
 
-#抓取网页内容用的程序包
-import json
-import requests
-
 #PyTorch用的包
 import torch
 import torch.nn as nn
@@ -29,7 +25,7 @@ os.chdir(r'C:\Users\Family\Desktop\PyTorch\04_Text_classification')
 good_file = 'data/good.txt'
 bad_file  = 'data/bad.txt'
 
-# 将文本中的标点符号过滤掉
+# 将文本中的标点符号过滤掉；正则[]集合替换
 def filter_punc(sentence):
     sentence = re.sub("[\s+\.\!\/_,$%^*(+\"\'“”《》?“]+|[+——！，。？、~@#￥%……&*（）：]+", "", sentence)  
     return(sentence)
@@ -41,18 +37,18 @@ def Prepare_data(good_file, bad_file, is_filter = True):
     neg_sentences = [] #存储负向的评论
     # encoding='utf-8',保证windows平台使用utf-8编码正常读取(python3)
     with open(good_file, mode='r',encoding='utf-8') as fr:
-        for idx, line in enumerate(fr):
+        for idx, line in enumerate(fr):# index 从0开始
             if is_filter:
                 #过滤标点符号
                 line = filter_punc(line)
-            #分词
+            #jieba模块 分词，返回list 类型
             words = jieba.lcut(line)
             if len(words) > 0:
-                all_words += words
+                all_words += words #list 列表类型之间连接
                 pos_sentences.append(words)
     print('{0} 包含 {1} 行, {2} 个词.'.format(good_file, idx+1, len(all_words)))
 
-    count = len(all_words)
+    count = len(all_words) # good count
     # encoding='utf-8',保证windows平台使用utf-8编码正常读取(python3)
     with open(bad_file,  mode='r',encoding='utf-8') as fr:
         for idx, line in enumerate(fr):
@@ -66,13 +62,13 @@ def Prepare_data(good_file, bad_file, is_filter = True):
 
     #建立词典，diction的每一项为{w:[id, 单词出现次数]}
     diction = {}
-    cnt = Counter(all_words)
+    cnt = Counter(all_words) # 词频统计
     for word, freq in cnt.items():
         diction[word] = [len(diction), freq]
     print('字典大小：{}'.format(len(diction)))
     return(pos_sentences, neg_sentences, diction)
 
-#根据单词返还单词的编码
+#根据单词返还单词的编码 # 根据key 获取value(list) 中的index元素
 def word2index(word, diction):
     if word in diction:
         value = diction[word][0]
@@ -80,15 +76,18 @@ def word2index(word, diction):
         value = -1
     return(value)
 
-#根据编码获得单词
+#根据编码获得单词 # 迭代 value ,寻找value_list 中对应的index，返回key
 def index2word(index, diction):
     for w,v in diction.items():
         if v[0] == index:
             return(w)
     return(None)
-
+'''
+读取过滤,分别返回积极消极词的list,以及词频的字典
+'''
 pos_sentences, neg_sentences, diction = Prepare_data(good_file, bad_file, True)
 st = sorted([(v[1], w) for w, v in diction.items()])
+# st  [[freq1,word1],[freq2,word2],]
 
 
 
@@ -100,7 +99,7 @@ st = sorted([(v[1], w) for w, v in diction.items()])
 # 输入一个句子和相应的词典，得到这个句子的向量化表示
 # 向量的尺寸为词典中词汇的个数，i位置上面的数值为第i个单词在sentence中出现的频率
 def sentence2vec(sentence, dictionary):
-    vector = np.zeros(len(dictionary))
+    vector = np.zeros(len(dictionary)) # 向量的尺寸为词典中词汇的个数, 填充0 zeros 零
     for l in sentence:
         vector[l] += 1
     return(1.0 * vector / len(sentence))
@@ -112,10 +111,10 @@ sentences = [] #原始句子，调试用
 # 处理正向评论
 for sentence in pos_sentences:
     new_sentence = []
-    for l in sentence:
+    for l in sentence: # 单词
         if l in diction:
-            new_sentence.append(word2index(l, diction))
-    dataset.append(sentence2vec(new_sentence, diction))
+            new_sentence.append(word2index(l, diction)) #根据key 获取value(list) 中的index元素
+    dataset.append(sentence2vec(new_sentence, diction)) #
     labels.append(0) #正标签为0
     sentences.append(sentence)
 
@@ -131,7 +130,16 @@ for sentence in neg_sentences:
 
 #打乱所有的数据顺序，形成数据集
 # indices为所有数据下标的一个全排列
-indices = np.random.permutation(len(dataset))
+'''
+permutation(x)函数由传入的 x 参数的类型决定功能：
+
+当 x 设置为标量时，返回指定范围值为 [0, x) 的乱序数组；
+当 x 设置为数组（本文的所有数组指的都是ndarray数组）、列表以及元组时，则对数组、列表以及元组中的元素值进行乱序排列；
+无论几个维度的数组、列表以及元组，permulation(x)函数最终只对第一个维度进行乱序
+第一维度是行，第二维度是列
+permutation(x)函数最终返回的都是乱序后的数组
+'''
+indices = np.random.permutation(len(dataset)) 
 print(len(dataset))
 print(indices)
 #类似 range ,不过是乱序的[11138   197  4426 ...  7846  9746  3849]
@@ -160,9 +168,24 @@ test_label = labels[test_size : 2 * test_size]
 # 一个简单的前馈神经网络，三层，第一层线性层，加一个非线性ReLU，第二层线性层，中间有10个隐含层神经元
 
 # 输入维度为词典的大小：每一段评论的词袋模型
+'''
+nn.Linear参数:
+    in_features:输入样本的大小
+    out_features:输出样本的大小
+    bias:默认为True，可以设置为False，设置后则不会添加偏差
+    在实际应用中，nn.Linear往往用来初始化矩阵，供神经网络使用。
+    
+nn.ReLU: 只获得大于0的部分，其余都等于0
+    y= max(0,x)
+
+nn.LogSoftmax: 
+    生成0-1 之间的数，总和为1，对应概率
+    （1）dim=0：对每一列的所有元素进行softmax运算，并使得每一列所有元素和为1。
+    （2）dim=1：对每一行的所有元素进行softmax运算，并使得每一行所有元素和为1。
+'''
 model = nn.Sequential(
-    nn.Linear(len(diction), 10),
-    nn.ReLU(),
+    nn.Linear(len(diction), 10), 
+    nn.ReLU(), 
     nn.Linear(10, 2),
     nn.LogSoftmax(dim=1),
 )
