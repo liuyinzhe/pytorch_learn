@@ -99,6 +99,12 @@ st = sorted([(v[1], w) for w, v in diction.items()])
 # 输入一个句子和相应的词典，得到这个句子的向量化表示
 # 向量的尺寸为词典中词汇的个数，i位置上面的数值为第i个单词在sentence中出现的频率
 def sentence2vec(sentence, dictionary):
+    '''
+    词袋中，按顺序位置改为1，累加出现频次； 
+    diction  {w:[id, 单词出现次数]}
+    
+    目标，统计不同分类中某些词会出现频次(权重)，来判断一句话是积极还是负面词汇
+    '''
     vector = np.zeros(len(dictionary)) # 向量的尺寸为词典中词汇的个数, 填充0 zeros 零
     for l in sentence:
         vector[l] += 1
@@ -152,7 +158,10 @@ labels = [labels[i] for i in indices]
 sentences = [sentences[i] for i in indices]
 
 #对整个数据集进行划分，分为：训练集、校准集和测试集，其中校准和测试集合的长度都是整个数据集的10分之一
-test_size = len(dataset) // 10
+'''
+valid_data(1:test_size) + test_data(1*test_size) +train_data(8*test_size)
+'''
+test_size = len(dataset) // 10 # 10分之1
 train_data = dataset[2 * test_size :]
 train_label = labels[2 * test_size :]
 
@@ -186,13 +195,45 @@ nn.LogSoftmax:
 model = nn.Sequential(
     nn.Linear(len(diction), 10), 
     nn.ReLU(), 
-    nn.Linear(10, 2),
+    nn.Linear(10, 2), # 二分概率
     nn.LogSoftmax(dim=1),
 )
 
 def rightness(predictions, labels):
     """计算预测错误率的函数，其中predictions是模型给出的一组预测结果，batch_size行num_classes列的矩阵，labels是数据之中的正确答案"""
-    pred = torch.max(predictions.data, 1)[1] # 对于任意一行（一个样本）的输出值的第1个维度，求最大，得到每一行的最大元素的下标
+    pred = torch.max(predictions.data, 1)[1] # 对于任意一行（一个样本）的输出值的第1个维度，求最大，得到每一行的最大元素的下标 
+    # print('pred',torch.max(predictions.data, 1))
+    # pred torch.return_types.max(values=tensor([-0.1528]),indices=tensor([0]))
+    # pred torch.return_types.max( values=tensor([-0.0073]),indices=tensor([1]))
+    
+    #print(torch.max(predictions.data, 1)[0])
+    # tensor([-0.0633])
+
+    # 下标指的应该是 tensor([1]) 就是标签
+    '''
+    labels.data.view_as(pred) labels 张量自动转换为与 pred 一样 ，前提是元素个数相同
+    pred.eq(tensor).sum()
+    
+    Tensor比较eq相等：
+        import torch
+
+        outputs=torch.FloatTensor([[1],[2],[3]])
+        targets=torch.FloatTensor([[0],[2],[3]])
+        print(targets.eq(outputs.data))
+    OUT:
+        tensor([[ 0],[ 1],[ 1]], dtype=torch.uint8)
+    
+    使用sum() 统计相等的个数：
+        import torch
+
+        outputs=torch.FloatTensor([[1],[2],[3]])
+        targets=torch.FloatTensor([[0],[2],[3]])
+        print(targets.eq(outputs.data).cpu().sum())
+        
+    OUT:
+        tensor(2)
+
+    '''
     rights = pred.eq(labels.data.view_as(pred)).sum() #将下标与labels中包含的类别进行比较，并累计得到比较正确的数量
     return rights, len(labels) #返回正确的数量和这一次一共比较了多少元素
 
@@ -200,7 +241,7 @@ def rightness(predictions, labels):
 
 # 损失函数为交叉熵
 cost = torch.nn.NLLLoss()
-# 优化算法为Adam，可以自动调节学习率
+# 优化算法为Adam，可以自动调节学习率(lr) # 调节lr ,即 变化step步长   一个lr 与 导数的乘积 = 结果(反向传播速度)
 optimizer = torch.optim.Adam(model.parameters(), lr = 0.01)
 records = []
 
@@ -211,11 +252,11 @@ for epoch in range(10):
         x, y = data
         
         # 需要将输入的数据进行适当的变形，主要是要多出一个batch_size的维度，也即第一个为1的维度
-        x = torch.tensor(x, requires_grad = True, dtype = torch.float).view(1,-1)
-        # x的尺寸：batch_size=1, len_dictionary
+        x = torch.tensor(x, requires_grad = True, dtype = torch.float).view(1,-1) # view 变形 1行，自动列
+        # x的尺寸：batch_size=1, len_dictionary # 行，列
         # 标签也要加一层外衣以变成1*1的张量
         y = torch.tensor(np.array([y]), dtype = torch.long)
-        # y的尺寸：batch_size=1, 1
+        # y的尺寸：batch_size=1, 1 # 输出 行，列 
         
         # 清空梯度
         optimizer.zero_grad()
@@ -275,7 +316,7 @@ vals = [] #记录准确率所用列表
 #对测试数据集进行循环
 for data, target in zip(test_data, test_label):
     data, target = torch.tensor(data, dtype = torch.float).view(1,-1), torch.tensor(np.array([target]), dtype = torch.long)
-    output = model(data) #将特征数据喂入网络，得到分类的输出
+    output = model(data) #将特征数据喂入网络，得到分类的输出； mode 就是nn.Sequential()搭建的神经网络层级结构
     val = rightness(output, target) #获得正确样本数以及总样本数
     vals.append(val) #记录结果
 
@@ -288,12 +329,12 @@ print(right_rate)
 #4. 解剖神经网络
 
 # 将神经网络的架构打印出来，方便后面的访问
-print(model.named_parameters)
+#print(model.named_parameters)
 
 # 绘制出第二个全链接层的权重大小
 # model[2]即提取第2层，网络一共4层，第0层为线性神经元，第1层为ReLU，第2层为第二层神经原链接，第3层为logsoftmax
-plt.figure(figsize = (10, 7))
-for i in range(model[2].weight.size()[0]):
+plt.figure(figsize = (10, 7)) 
+for i in range(model[2].weight.size()[0]): # 10层隐藏层权重
     #if i == 1:
         weights = model[2].weight[i].data.numpy()
         plt.plot(weights, 'o-', label = i)
@@ -304,7 +345,7 @@ plt.show()
 
 # 将第一层神经元的权重都打印出来，一条曲线表示一个隐含层神经元。横坐标为输入层神经元编号，纵坐标为权重值大小
 plt.figure(figsize = (10, 7))
-for i in range(model[0].weight.size()[0]):
+for i in range(model[0].weight.size()[0]): #0层输入层权重
     #if i == 1:
         weights = model[0].weight[i].data.numpy()
         plt.plot(weights, alpha = 0.5, label = i)
@@ -316,11 +357,18 @@ plt.show()
 # 将第二层的各个神经元与输入层的链接权重，挑出来最大的权重和最小的权重，并考察每一个权重所对应的单词是什么，把单词打印出来
 # model[0]是取出第一层的神经元
 
-for i in range(len(model[0].weight)):
+for i in range(len(model[0].weight)): # 输入
     print('\n')
     print('第{}个神经元'.format(i))
     print('max:')
-    st = sorted([(w,i) for i,w in enumerate(model[0].weight[i].data.numpy())])
+    st = sorted([(w,i) for i,w in enumerate(model[0].weight[i].data.numpy())]) #
+    print('st',st[0:10])
+    '''
+    weight index
+    最前面/最后面 20个 
+    概率，标签
+    values=tensor([-0.0073]),indices=tensor([1])
+    '''
     for i in range(1, 20):
         word = index2word(st[-i][1],diction)
         print(word)
@@ -337,11 +385,31 @@ targets = []
 j = 0
 sent_indices = []
 for data, target in zip(test_data, test_label):
-    predictions = model(torch.tensor(data, dtype = torch.float).view(1,-1))
+    #print('for:',data,target)
+    '''
+    word(向量化的词频) , label
+    [0. 0. 0. ... 0. 0. 0.] 1
+    [0. 0. 0. ... 0. 0. 0.] 0
+    '''
+    predictions = model(torch.tensor(data, dtype = torch.float).view(1,-1)) # 1行，自动列
     pred = torch.max(predictions.data, 1)[1]
+    '''
+    values=tensor([-0.1528]),indices=tensor([0]
+    torch.return_types.max(values=tensor([-0.1528]),indices=tensor([0]))
+    '''
     target = torch.tensor(np.array([target]), dtype = torch.long).view_as(pred)
     rights = pred.eq(target)
-    indices = np.where(rights.numpy() == 0)[0]
+    '''
+    Tensor比较eq相等：
+        import torch
+
+        outputs=torch.FloatTensor([[1],[2],[3]])
+        targets=torch.FloatTensor([[0],[2],[3]])
+        print(targets.eq(outputs.data))
+    OUT:
+        tensor([[ 0],[ 1],[ 1]], dtype=torch.uint8)
+    '''
+    indices = np.where(rights.numpy() == 0)[0] #
     for i in indices:
         wrong_sentences.append(data)
         targets.append(target[i])
