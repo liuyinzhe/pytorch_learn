@@ -356,19 +356,19 @@ plt.show()
 
 # 将第二层的各个神经元与输入层的链接权重，挑出来最大的权重和最小的权重，并考察每一个权重所对应的单词是什么，把单词打印出来
 # model[0]是取出第一层的神经元
-
+'''
 for i in range(len(model[0].weight)): # 输入
     print('\n')
     print('第{}个神经元'.format(i))
     print('max:')
     st = sorted([(w,i) for i,w in enumerate(model[0].weight[i].data.numpy())]) #
     print('st',st[0:10])
-    '''
-    weight index
-    最前面/最后面 20个 
-    概率，标签
-    values=tensor([-0.0073]),indices=tensor([1])
-    '''
+    
+    #weight index
+    #最前面/最后面 20个 
+    #概率，标签
+    #values=tensor([-0.0073]),indices=tensor([1])
+
     for i in range(1, 20):
         word = index2word(st[-i][1],diction)
         print(word)
@@ -376,7 +376,7 @@ for i in range(len(model[0].weight)): # 输入
     for i in range(20):
         word = index2word(st[i][1],diction)
         print(word)
-
+'''
 #2. 寻找判断错误的原因
 
 # 收集到在测试集中判断错误的句子
@@ -392,12 +392,13 @@ for data, target in zip(test_data, test_label):
     [0. 0. 0. ... 0. 0. 0.] 0
     '''
     predictions = model(torch.tensor(data, dtype = torch.float).view(1,-1)) # 1行，自动列
-    pred = torch.max(predictions.data, 1)[1]
+    pred = torch.max(predictions.data, 1)[1]  # 返回行最大的值 ，他的第二个元素[1]
+    # print("predictions",torch.max(predictions.data, 1))
     '''
     values=tensor([-0.1528]),indices=tensor([0]
     torch.return_types.max(values=tensor([-0.1528]),indices=tensor([0]))
     '''
-    target = torch.tensor(np.array([target]), dtype = torch.long).view_as(pred)
+    target = torch.tensor(np.array([target]), dtype = torch.long).view_as(pred) # 转为为pred 相同 shap 行列
     rights = pred.eq(target)
     '''
     Tensor比较eq相等：
@@ -409,7 +410,7 @@ for data, target in zip(test_data, test_label):
     OUT:
         tensor([[ 0],[ 1],[ 1]], dtype=torch.uint8)
     '''
-    indices = np.where(rights.numpy() == 0)[0] #
+    indices = np.where(rights.numpy() == 0)[0] # 获得 不相等的地方(张量多维矩阵)index 就是错误的
     for i in indices:
         wrong_sentences.append(data)
         targets.append(target[i])
@@ -418,8 +419,8 @@ for data, target in zip(test_data, test_label):
 
 # 逐个查看出错的句子是什么
 idx = 1
-print(sent_indices)
-print(sentences[sent_indices[idx]])
+print('sent_indices',sent_indices)
+print('sentences[sent_indices[idx]]',idx,sent_indices[idx],sentences[sent_indices[idx]])
 print(targets[idx].numpy())
 lst = list(np.where(wrong_sentences[idx]>0)[0])
 mm = list(map(lambda x:index2word(x, diction), lst))
@@ -427,8 +428,8 @@ print(mm)
 
 # 观察第一层的权重与输入向量的内积结果，也就是对隐含层神经元的输入，其中最大数值对应的项就是被激活的神经元
 # 负值最小的神经元就是被抑制的神经元
-print(model[0].weight.data.numpy().dot(wrong_sentences[idx].reshape(-1, 1)))
+#print(model[0].weight.data.numpy().dot(wrong_sentences[idx].reshape(-1, 1)))
 
 # 显示输入句子的非零项，即对应单词不为空的项，看它们到隐含层指定神经元的权重是多少
-print(model[0].weight[0].data.numpy()[np.where(wrong_sentences[idx]>0)[0]])
+#print(model[0].weight[0].data.numpy()[np.where(wrong_sentences[idx]>0)[0]])
 
