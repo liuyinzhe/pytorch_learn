@@ -92,8 +92,7 @@ st = sorted([(v[1], w) for w, v in diction.items()])
 
 
 # 词袋模型
-
-#1. 训练数据准备
+###1. 训练数据准备
 
 
 # 输入一个句子和相应的词典，得到这个句子的向量化表示
@@ -172,7 +171,7 @@ test_data = dataset[test_size : 2 * test_size]
 test_label = labels[test_size : 2 * test_size]
 
 
-#2. 模型定义
+## 2. 模型定义
 
 # 一个简单的前馈神经网络，三层，第一层线性层，加一个非线性ReLU，第二层线性层，中间有10个隐含层神经元
 
@@ -414,6 +413,11 @@ for data, target in zip(test_data, test_label):
     for i in indices:
         wrong_sentences.append(data)
         targets.append(target[i])
+        # data, target in zip(test_data, test_label)
+        # data  是单词向量化序列
+        # target 就是标签
+        #print(target[i])
+        # sent_indices 就是截取test_size 测试集大小 分出来段落
         sent_indices.append(test_size + j + i)
     j += len(target)
 
