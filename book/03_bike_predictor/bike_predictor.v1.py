@@ -38,7 +38,7 @@ plt.show()
 ## 线性回归尝试
 
 #我们取出数据库的最后一列的前50条记录来进行预测
-counts = rides['cnt'][:50]
+counts = rides['cnt'][:50] #前50 做预测
 
 # 创建变量x，它是1，2，……，50
 x = torch.tensor(np.arange(len(counts)), dtype=torch.double, requires_grad = True)
@@ -153,7 +153,7 @@ plt.ylabel('Loss')
 plt.show()
 
 
-# 这里是有限数据的拟合，
+# 这里是有限数据的拟合，预测数据使用的训练的数据，所以拟合较好，实际是过拟合
 # 无法进一步用于预测；主要原因自变量X ,是顺序的，并且与自行车使用数量无关；
 # 需要进一步挖掘 天气，一周7天的分布
 
@@ -168,7 +168,7 @@ plt.show()
 
 
 ## 用训练好的神经网络做预测
-counts_predict = rides['cnt'][50:100] #读取待预测的接下来的50个数据点
+counts_predict = rides['cnt'][50:100] #读取待预测的接下来的50个数据点 #后50 做预测
 
 #首先对接下来的50个数据点进行选取，注意x应该取51，52，……，100，然后再归一化
 x = torch.tensor((np.arange(50, 100, dtype = float) / len(counts))
