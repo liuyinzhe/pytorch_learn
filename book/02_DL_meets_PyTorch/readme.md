@@ -1,6 +1,8 @@
 
-t(x) =m(x+2)**2
+秒懂神经网络(NN)  视频
+https://www.bilibili.com/video/BV1Xb4y1x7jF
 
+t(x) =m(x+2)**2
 
 
 叶子节点x,自变量；t 因变量， m表示取平均值；
